@@ -1,0 +1,10 @@
+{"mappings": {
+  "_doc": {
+    "properties": {
+      "user": {"type": "keyword"},
+      "current": {"type": "integer"},
+      "transaction": {"type": "integer"},
+      "created": {"type": "date"}
+    }
+  }
+}}

@@ -1,0 +1,53 @@
+version: '3'
+services:
+  db:
+    image: postgres
+    networks:
+      - demo
+
+  web:
+    build: .
+    command: gunicorn demo.wsgi:application -w9 -b "0.0.0.0:8001" --name app --log-level=debug --log-file=-
+    # command: python manage.py runserver 0.0.0.0:8001
+    depends_on:
+      - db
+    ports:
+     - "8001:8001"
+    volumes:
+     - .:/code
+    networks:
+      - demo
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.6.0
+    container_name: elasticsearch_demo
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9200:9200
+    networks:
+      - demo
+
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:6.6.0
+    container_name: logstash_demo
+    volumes:
+      - ./logstash/:/logstash_dir
+    command: bash -c "logstash -f /logstash_dir/logstash.conf "
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5959:5959"
+    networks:
+      - demo
+
+networks:
+  demo:
+    external: true
